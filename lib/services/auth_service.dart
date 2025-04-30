@@ -1,54 +1,41 @@
 import 'package:flutter/foundation.dart';
-
-class User {
-  final String email;
-  final String role;
-
-  User({required this.email, required this.role});
-}
+import 'package:uuid/uuid.dart';
+import '../models/user.dart';
 
 class AuthService with ChangeNotifier {
-  User? _user;
-  bool _isLoading = false;
+  User? _currentUser;
+  final _uuid = const Uuid();
 
-  // Predefined users
-  final Map<String, Map<String, dynamic>> _users = {
-    'd23it183@charusat.edu.in': {
-      'password': 'Test1234',
-      'role': 'operator',
-    },
-    'admin183@gmail.com': {
-      'password': 'Test1234',
-      'role': 'admin',
-    },
-  };
+  User? get currentUser => _currentUser;
+  bool get isAuthenticated => _currentUser != null;
+  bool get isAdmin => _currentUser?.isAdmin ?? false;
 
-  User? get user => _user;
-  bool get isLoading => _isLoading;
-  bool get isAdmin => _user?.role == 'admin';
-  bool get isOperator => _user?.role == 'operator';
-
-  Future<void> signInWithEmailAndPassword(String email, String password) async {
-    _isLoading = true;
-    notifyListeners();
-
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-
-    if (_users.containsKey(email) && _users[email]!['password'] == password) {
-      _user = User(
+  Future<void> login(String email, String password) async {
+    // TODO: Implement actual authentication logic
+    // For now, we'll use mock data
+    if (email == 'admin@example.com' && password == 'admin123') {
+      _currentUser = User(
+        id: _uuid.v4(),
+        name: 'Admin User',
         email: email,
-        role: _users[email]!['role'],
+        role: UserRole.admin,
+      );
+    } else if (email == 'operator@example.com' && password == 'operator123') {
+      _currentUser = User(
+        id: _uuid.v4(),
+        name: 'Operator User',
+        email: email,
+        role: UserRole.operator,
+        assignedOperations: ['op1', 'op2'], // Example assigned operations
       );
     } else {
-      throw 'Invalid email or password';
+      throw Exception('Invalid credentials');
     }
-
-    _isLoading = false;
     notifyListeners();
   }
 
-  Future<void> signOut() async {
-    _user = null;
+  Future<void> logout() async {
+    _currentUser = null;
     notifyListeners();
   }
 } 
